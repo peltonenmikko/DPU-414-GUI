@@ -1,0 +1,12 @@
+{
+    "files": [
+        "widget.py",
+        "form.ui",
+        "text_print.ui",
+        "image_print.ui",
+        "printer.py",
+        "ui_form.py",
+        "ui_image_print.py",
+        "ui_text_print.py"
+    ]
+}
