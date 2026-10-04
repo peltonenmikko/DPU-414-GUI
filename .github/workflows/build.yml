@@ -19,7 +19,6 @@ jobs:
     runs-on: windows-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -60,7 +59,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -82,7 +80,6 @@ jobs:
         run: |
           wget -O linuxdeploy.AppImage \
             https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-
           chmod +x linuxdeploy.AppImage
 
       - name: Create Linux desktop entry
@@ -107,26 +104,26 @@ jobs:
           from PIL import Image
 
           img = Image.open("dpu414.ico").convert("RGBA")
-	  img = img.resize((256, 256), Image.Resampling.LANCZOS)
+          img = img.resize((256, 256), Image.Resampling.LANCZOS)
 
           img.save(
               "AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png"
           )
           PY
 
-	- name: Build AppImage
-	  run: |
-	    ./linuxdeploy.AppImage \
-	      --appdir AppDir \
-	      --executable dist/DPU-414-GUI/DPU-414-GUI \
-	      --desktop-file AppDir/usr/share/applications/DPU-414-GUI.desktop \
-	      --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png \
-	      --output appimage
+      - name: Build AppImage
+        run: |
+          ./linuxdeploy.AppImage \
+            --appdir AppDir \
+            --executable dist/DPU-414-GUI/DPU-414-GUI \
+            --desktop-file AppDir/usr/share/applications/DPU-414-GUI.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png \
+            --output appimage
 
       - name: Rename AppImage
         run: |
           mv DPU-414-GUI*.AppImage \
-             DPU-414-GUI-Linux-x86_64.AppImage
+            DPU-414-GUI-Linux-x86_64.AppImage
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
@@ -148,7 +145,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Download Windows build
         uses: actions/download-artifact@v5
         with:
