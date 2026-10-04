@@ -106,20 +106,22 @@ jobs:
           python - <<'PY'
           from PIL import Image
 
-          img = Image.open("dpu414.ico")
+          img = Image.open("dpu414.ico").convert("RGBA")
+	  img = img.resize((256, 256), Image.Resampling.LANCZOS)
+
           img.save(
               "AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png"
           )
           PY
 
-      - name: Build AppImage
-        run: |
-          ./linuxdeploy.AppImage \
-            --appdir AppDir \
-            --executable dist/DPU-414-GUI/DPU-414-GUI \
-            --desktop-file AppDir/usr/share/applications/DPU-414-GUI.desktop \
-            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png \
-            --output appimage
+	- name: Build AppImage
+	  run: |
+	    ./linuxdeploy.AppImage \
+	      --appdir AppDir \
+	      --executable dist/DPU-414-GUI/DPU-414-GUI \
+	      --desktop-file AppDir/usr/share/applications/DPU-414-GUI.desktop \
+	      --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png \
+	      --output appimage
 
       - name: Rename AppImage
         run: |
