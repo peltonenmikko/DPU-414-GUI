@@ -80,6 +80,7 @@ jobs:
         run: |
           wget -O linuxdeploy.AppImage \
             https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+
           chmod +x linuxdeploy.AppImage
 
       - name: Create Linux desktop entry
@@ -120,10 +121,36 @@ jobs:
             --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png \
             --output appimage
 
+      - name: Find AppImage
+        run: |
+          echo "========================================"
+          echo "Workspace contents:"
+          echo "========================================"
+          ls -lah
+
+          echo ""
+          echo "========================================"
+          echo "Searching for AppImage files:"
+          echo "========================================"
+          find . -maxdepth 3 -type f -name "*.AppImage" -print
+
       - name: Rename AppImage
         run: |
-          mv DPU-414-GUI*.AppImage \
-            DPU-414-GUI-Linux-x86_64.AppImage
+          APPIMAGE=$(find . -maxdepth 3 -type f -name "*.AppImage" | head -n 1)
+
+          if [ -z "$APPIMAGE" ]; then
+            echo "ERROR: No AppImage was created!"
+            exit 1
+          fi
+
+          echo "Found AppImage:"
+          echo "$APPIMAGE"
+
+          mv "$APPIMAGE" DPU-414-GUI-Linux-x86_64.AppImage
+
+          echo ""
+          echo "Final AppImage:"
+          ls -lh DPU-414-GUI-Linux-x86_64.AppImage
 
       - name: Upload Linux build
         uses: actions/upload-artifact@v4
@@ -156,6 +183,11 @@ jobs:
         with:
           name: DPU-414-GUI-Linux
           path: release
+
+      - name: Show release files
+        run: |
+          echo "Release files:"
+          find release -type f -maxdepth 2 -print
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
