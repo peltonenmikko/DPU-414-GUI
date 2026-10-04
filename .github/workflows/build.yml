@@ -1,0 +1,167 @@
+name: Build DPU-414 GUI
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+
+  # ==========================================
+  # WINDOWS BUILD
+  # ==========================================
+
+  windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Windows application
+        run: |
+          pyinstaller --clean --noconfirm DPU-414-GUI.spec
+
+      - name: Create Windows ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path dist/DPU-414-GUI/* `
+            -DestinationPath DPU-414-GUI-Windows.zip
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DPU-414-GUI-Windows
+          path: DPU-414-GUI-Windows.zip
+
+
+  # ==========================================
+  # LINUX BUILD
+  # ==========================================
+
+  linux:
+    name: Build Linux AppImage
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Linux application
+        run: |
+          pyinstaller --clean --noconfirm DPU-414-GUI-linux.spec
+
+      - name: Download linuxdeploy
+        run: |
+          wget -O linuxdeploy.AppImage \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+
+          chmod +x linuxdeploy.AppImage
+
+      - name: Create Linux desktop entry
+        run: |
+          mkdir -p AppDir/usr/share/applications
+
+          cat > AppDir/usr/share/applications/DPU-414-GUI.desktop << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=DPU-414 GUI
+          Exec=DPU-414-GUI
+          Icon=DPU-414-GUI
+          Categories=Utility;
+          Terminal=false
+          EOF
+
+      - name: Create Linux icon
+        run: |
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+
+          python - <<'PY'
+          from PIL import Image
+
+          img = Image.open("dpu414.ico")
+          img.save(
+              "AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png"
+          )
+          PY
+
+      - name: Build AppImage
+        run: |
+          ./linuxdeploy.AppImage \
+            --appdir AppDir \
+            --executable dist/DPU-414-GUI/DPU-414-GUI \
+            --desktop-file AppDir/usr/share/applications/DPU-414-GUI.desktop \
+            --icon-file AppDir/usr/share/icons/hicolor/256x256/apps/DPU-414-GUI.png \
+            --output appimage
+
+      - name: Rename AppImage
+        run: |
+          mv DPU-414-GUI*.AppImage \
+             DPU-414-GUI-Linux-x86_64.AppImage
+
+      - name: Upload Linux build
+        uses: actions/upload-artifact@v4
+        with:
+          name: DPU-414-GUI-Linux
+          path: DPU-414-GUI-Linux-x86_64.AppImage
+
+
+  # ==========================================
+  # GITHUB RELEASE
+  # ==========================================
+
+  release:
+    name: Create GitHub Release
+    needs:
+      - windows
+      - linux
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v5
+        with:
+          name: DPU-414-GUI-Windows
+          path: release
+
+      - name: Download Linux build
+        uses: actions/download-artifact@v5
+        with:
+          name: DPU-414-GUI-Linux
+          path: release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/DPU-414-GUI-Windows.zip
+            release/DPU-414-GUI-Linux-x86_64.AppImage

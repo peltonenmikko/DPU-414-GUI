@@ -1,0 +1,12 @@
+# PyInstaller
+build/
+dist/
+*.spec.bak
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Qt Creator
+*.pyproject.user
+*.pyproject.user.*
